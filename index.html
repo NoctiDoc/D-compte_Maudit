@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hollandais Volant - Dark Fantasy Pixel Art HD</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #020104;
+            font-family: 'Silkscreen', monospace;
+            color: #e2e8f0;
+            overflow: hidden;
+            position: fixed;
+        }
+
+        #app-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 12px 32px 12px;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+
+        .crt::before {
+            content: " ";
+            display: block;
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.4) 50%);
+            z-index: 20;
+            background-size: 100% 4px;
+            pointer-events: none;
+        }
+
+        .pixel-box {
+            position: relative;
+            z-index: 10;
+            background: rgba(8, 4, 16, 0.94);
+            border: 3px solid #6b21a8;
+            box-shadow: 0 0 15px rgba(107, 33, 168, 0.6), inset 0 0 8px rgba(0, 0, 0, 0.9);
+            border-radius: 6px;
+            padding: 10px 12px;
+            width: 100%;
+            max-width: 440px;
+            text-align: center;
+        }
+
+        .font-pixel { font-family: 'Press Start 2P', monospace; }
+
+        #countdown {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .time-card {
+            background: rgba(3, 1, 8, 0.92);
+            border: 1px solid #7e22ce;
+            padding: 6px 2px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .time-val {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 13px;
+            color: #34d399;
+            text-shadow: 0 0 8px rgba(52, 211, 153, 0.8);
+        }
+
+        .time-val.sec {
+            color: #f87171;
+            text-shadow: 0 0 8px rgba(248, 113, 113, 0.8);
+        }
+
+        .time-lbl {
+            font-size: 7px;
+            color: #d8b4fe;
+            margin-top: 4px;
+        }
+
+        #hud-bottom {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            width: 100%;
+            max-width: 440px;
+            margin-bottom: 22px;
+        }
+
+        .pixel-btn {
+            background: #140724;
+            border: 2px solid #a855f7;
+            color: #f3e8ff;
+            font-family: 'Silkscreen', monospace;
+            font-size: 10px;
+            padding: 10px 6px;
+            cursor: pointer;
+            border-radius: 6px;
+            box-shadow: 0 4px 0 #581c87;
+            flex: 1;
+            text-align: center;
+            transition: transform 0.05s ease;
+        }
+
+        .pixel-btn:active {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #581c87;
+        }
+
+        .btn-agenda {
+            background: #064e3b;
+            border-color: #34d399;
+            box-shadow: 0 4px 0 #065f46;
+            margin-top: 10px;
+            width: 100%;
+            font-size: 11px;
+            padding: 12px;
+        }
+        .btn-agenda:active {
+            box-shadow: 0 1px 0 #065f46;
+        }
+
+        #start-overlay, #calendar-modal {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            text-align: center;
+        }
+
+        #start-overlay {
+            background: rgba(2, 1, 6, 0.98);
+            z-index: 100;
+        }
+
+        #calendar-modal {
+            background: rgba(2, 1, 6, 0.95);
+            z-index: 150;
+            display: none;
+        }
+
+        #start-btn {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 11px;
+            padding: 14px 22px;
+            background: #7e22ce;
+            border: 3px solid #f3e8ff;
+            color: #fef08a;
+            cursor: pointer;
+            box-shadow: 0 0 25px rgba(168, 85, 247, 0.9);
+            animation: pulse 1.2s infinite alternate;
+            margin-top: 15px;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.05); }
+        }
+
+        @keyframes shake {
+            0% { transform: translate(0, 0); }
+            15% { transform: translate(-8px, 6px); }
+            30% { transform: translate(8px, -6px); }
+            45% { transform: translate(-5px, -4px); }
+            70% { transform: translate(4px, 4px); }
+            100% { transform: translate(0, 0); }
+        }
+        .shake { animation: shake 0.35s ease-in-out; }
+    </style>
+</head>
+<body class="crt">
+
+    <div id="start-overlay">
+        <div style="font-size: 40px; margin-bottom: 12px; text-shadow: 0 0 15px #a855f7;">☠</div>
+        <h1 class="font-pixel" style="font-size: 13px; color: #c084fc; margin-bottom: 10px; line-height: 1.6; text-shadow: 0 0 10px rgba(192,132,252,0.6);">TÉNÈBRES DU PIRATE</h1>
+        <p style="font-size: 10px; color: #94a3b8; margin-bottom: 25px;">Compte à rebours maudit du 31 Octobre</p>
+        <button id="start-btn">► PRESS START ◀</button>
+    </div>
+
+    <!-- Menu Agenda Modal avec le Grand Chelem Caennais et 15h -->
+    <div id="calendar-modal">
+        <div class="pixel-box" style="display: flex; flex-direction: column; gap: 12px; max-width: 320px;">
+            <h3 class="font-pixel" style="font-size: 10px; color: #34d399; margin-bottom: 5px;">📅 AJOUTER À L'AGENDA</h3>
+            <button class="pixel-btn" id="btn-apple-cal" style="background: #1e293b; border-color: #94a3b8; padding: 12px;">🍎 APPLE / ANDROID (.ICS)</button>
+            <a class="pixel-btn" href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=%E2%98%A0%EF%B8%8F+Grand+Chelem+Caennais+-+Barathon+Pirate&dates=20261031T150000/20261101T020000&ctz=Europe/Paris&details=Pr%C3%AAt+pour+les+8+%C3%A9preuves+du+Barathon+%3F+D%C3%A9part+Rue+Montaigu%2C+arriv%C3%A9e+Les+Mauvais+Gamins.&location=Rue+Montaigu%2C+Caen" target="_blank" style="text-decoration: none; background: #1e3a8a; border-color: #60a5fa; padding: 12px; display: block;">🔵 GOOGLE CALENDAR</a>
+            <button class="pixel-btn" id="btn-close-cal" style="background: #7f1d1d; border-color: #f87171; margin-top: 8px;">❌ ANNULER</button>
+        </div>
+    </div>
+
+    <div id="app-container">
+        <!-- Top HUD -->
+        <div class="pixel-box">
+            <div class="font-pixel" style="font-size: 9px; color: #d8b4fe; margin-bottom: 8px; text-shadow: 0 0 8px rgba(216,180,254,0.6);">🏴‍☠️ CAP SUR LE 31 OCTOBRE 🏴‍☠️</div>
+            <div id="countdown">
+                <div class="time-card"><span id="days" class="time-val">00</span><span class="time-lbl">JOURS</span></div>
+                <div class="time-card"><span id="hours" class="time-val">00</span><span class="time-lbl">HEURES</span></div>
+                <div class="time-card"><span id="mins" class="time-val">00</span><span class="time-lbl">MINS</span></div>
+                <div class="time-card"><span id="secs" class="time-val sec">00</span><span class="time-lbl">SECS</span></div>
+            </div>
+            <button class="pixel-btn btn-agenda" id="btn-open-cal">📅 AJOUTER À L'AGENDA</button>
+        </div>
+
+        <canvas id="pixelCanvas"></canvas>
+
+        <!-- Bottom Controls -->
+        <div id="hud-bottom">
+            <button class="pixel-btn" id="btn-cannon">💣 CANON</button>
+            <button class="pixel-btn" id="btn-lightning">⚡ ÉCLAIR</button>
+            <button class="pixel-btn" id="btn-audio">🔊 SON</button>
+            <button class="pixel-btn" id="btn-crt">📺 CRT</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('pixelCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        const V_W = 512;
+        const V_H = 288;
+        canvas.width = V_W;
+        canvas.height = V_H;
+
+        function updateCountdown() {
+            const target = new Date('October 31, 2026 15:00:00').getTime();
+            const now = new Date().getTime();
+            const diff = target - now;
+
+            if (diff <= 0) {
+                document.getElementById('countdown').innerHTML = '<div style="grid-column: span 4; font-size: 9px; color: #fbbf24; padding: 5px;">LE CHELEM A COMMENCÉ !</div>';
+                return;
+            }
+
+            document.getElementById('days').innerText = String(Math.floor(diff / (1000 * 60 * 60 * 24))).padStart(2, '0');
+            document.getElementById('hours').innerText = String(Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))).padStart(2, '0');
+            document.getElementById('mins').innerText = String(Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
+            document.getElementById('secs').innerText = String(Math.floor((diff % (1000 * 60)) / 1000)).padStart(2, '0');
+        }
+        setInterval(updateCountdown, 1000);
+        updateCountdown();
+
+        let audioCtx = null, isMuted = false, masterGain = null;
+
+        function initAudio() {
+            try {
+                if (audioCtx) return;
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                masterGain = audioCtx.createGain();
+                masterGain.gain.value = 0.25;
+                masterGain.connect(audioCtx.destination);
+                
+                const bufSize = audioCtx.sampleRate * 2;
+                const buf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+                const data = buf.getChannelData(0);
+                for(let i=0; i<bufSize; i++) data[i] = Math.random() * 2 - 1;
+                const src = audioCtx.createBufferSource();
+                src.buffer = buf; src.loop = true;
+                const flt = audioCtx.createBiquadFilter();
+                flt.type = 'bandpass'; flt.frequency.value = 220;
+                src.connect(flt); flt.connect(masterGain); src.start();
+
+                startChiptuneMelody();
+            } catch(e) {}
+        }
+
+        function playChiptuneNote(freq, duration, type = 'square', vol = 0.08) {
+            if (isMuted || !audioCtx) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const noteGain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                noteGain.gain.setValueAtTime(vol, audioCtx.currentTime);
+                noteGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                osc.connect(noteGain);
+                noteGain.connect(masterGain);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch(e){}
+        }
+
+        function startChiptuneMelody() {
+            const notes = [
+                220.00, 246.94, 261.63, 293.66, 329.63, 349.23, 440.00, 392.00,
+                349.23, 329.63, 293.66, 261.63, 220.00, 196.00, 220.00, 261.63
+            ];
+            let index = 0;
+            setInterval(() => {
+                if (isMuted || !audioCtx || audioCtx.state !== 'running') return;
+                playChiptuneNote(notes[index], 0.3, 'square', 0.07);
+                if (index % 4 === 0) playChiptuneNote(110.00, 0.4, 'triangle', 0.12);
+                index = (index + 1) % notes.length;
+            }, 320);
+        }
+
+        function playCannonSFX() {
+            if (isMuted || !audioCtx) return;
+            try {
+                const now = audioCtx.currentTime;
+                const osc = audioCtx.createOscillator();
+                const g = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(180, now);
+                osc.frequency.exponentialRampToValueAtTime(12, now + 0.6);
+                g.gain.setValueAtTime(0.9, now);
+                g.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
+                osc.connect(g); g.connect(masterGain); osc.start(); osc.stop(now + 0.6);
+            } catch(e){}
+        }
+
+        let time = 0, flash = 0, cannonFired = 0;
+        const pelican = { x: -40, y: 45, vx: 0.45, wingTimer: 0 };
+        const stars = Array.from({length: 50}, () => ({ x: Math.random()*V_W, y: Math.random()*(V_H*0.48), s: Math.random()>0.8?2:1 }));
+
+        function p(x, y, col) {
+            ctx.fillStyle = col;
+            ctx.fillRect(Math.floor(x), Math.floor(y), 1, 1);
+        }
+
+        function r(x, y, w, h, col) {
+            ctx.fillStyle = col;
+            ctx.fillRect(Math.floor(x), Math.floor(y), Math.floor(w), Math.floor(h));
+        }
+
+        function drawPixelPelican() {
+            pelican.x += pelican.vx;
+            pelican.y += Math.sin(time * 2) * 0.2;
+            if(pelican.x > V_W + 40) { pelican.x = -40; pelican.y = 25 + Math.random() * 35; }
+            pelican.wingTimer += 0.2;
+            const wingUp = Math.sin(pelican.wingTimer) > 0;
+
+            const x = Math.floor(pelican.x);
+            const y = Math.floor(pelican.y);
+
+            r(x, y, 12, 4, "#27272a");
+            r(x + 2, y + 1, 8, 2, "#3f3f46");
+            r(x + 10, y - 2, 4, 3, "#52525b");
+            r(x + 14, y - 1, 6, 2, "#f59e0b");
+            r(x + 12, y + 1, 5, 2, "#d97706");
+            p(x + 12, y - 2, "#ffffff");
+
+            if (wingUp) {
+                r(x + 3, y - 6, 5, 6, "#27272a");
+                r(x + 4, y - 9, 3, 4, "#3f3f46");
+            } else {
+                r(x + 3, y + 4, 5, 6, "#27272a");
+                r(x + 4, y + 8, 3, 4, "#3f3f46");
+            }
+        }
+
+        function drawTruePixelShip(shipX, shipY) {
+            let recoil = cannonFired > 0 ? Math.sin(cannonFired * Math.PI) * 6 : 0;
+            
+            ctx.save();
+            ctx.translate(Math.floor(shipX - recoil), Math.floor(shipY));
+
+            const bDark = "#090314";
+            const bMid = "#18082e";
+            const bLight = "#3b1759";
+            const bHighlight = "#6b21a8";
+            const sDark = "#0f071a";
+            const sMid = "#220e3d";
+            const sLight = "#3b1a66";
+            const metal = "#475569";
+            const bone = "#f8fafc";
+            const gold = "#fbbf24";
+
+            r(-48, 4, 96, 14, bDark);
+            r(-54, -2, 28, 10, bMid);
+            r(-40, 2, 80, 8, bMid);
+            r(-34, 18, 68, 5, bDark);
+            
+            r(-50, 0, 24, 1, bHighlight);
+            r(-38, 6, 76, 1, bHighlight);
+            r(-34, 12, 68, 1, bLight);
+
+            r(-52, -6, 22, 4, bMid);
+            r(-48, -9, 16, 3, bHighlight);
+
+            r(42, -1, 24, 4, bMid);
+            r(50, -3, 14, 2, bLight);
+            r(60, -5, 6, 2, metal);
+
+            [-28, -16, -4, 8, 20, 32].forEach(px => {
+                r(px, 9, 5, 5, "#000");
+                r(px + 1, 10, 3, 3, bDark);
+                r(px + 2, 11, 4, 2, metal);
+            });
+
+            r(-26, -64, 2, 72, bDark);
+            r(2, -82, 3, 90, bDark);
+            r(28, -70, 2, 78, bDark);
+
+            for (let i = 0; i < 35; i += 3) {
+                p(-26 + i * 0.4, -50 + i, "#1e1b4b");
+                p(2 + i * 0.5, -65 + i * 1.4, "#1e1b4b");
+            }
+
+            r(-12, -74, 30, 18, sDark);
+            r(-10, -72, 26, 14, sMid);
+            r(-6, -68, 18, 8, sLight);
+            
+            r(-3, -64, 8, 6, bone);
+            p(-1, -62, "#000"); p(2, -62, "#000");
+            r(-2, -58, 6, 2, bone);
+
+            r(-18, -52, 40, 24, sDark);
+            r(-16, -50, 36, 20, sMid);
+            r(-12, -44, 28, 12, sLight);
+            p(-8, -38, bDark); p(10, -40, bDark);
+
+            r(-34, -54, 22, 16, sDark);
+            r(-32, -52, 18, 12, sMid);
+            r(-36, -36, 24, 18, sDark);
+
+            r(10, -60, 26, 18, sDark);
+            r(12, -58, 22, 14, sMid);
+            r(8, -40, 30, 20, sDark);
+
+            for(let i = 0; i < 18; i++) {
+                r(42 + i, -14 + i, 1, 18 - i, sMid);
+            }
+
+            const flagWave = Math.sin(time * 10) > 0 ? 2 : 0;
+            r(2, -88, 10 + flagWave, 4, bHighlight);
+            p(5 + flagWave, -87, gold);
+
+            if (Math.random() > 0.2) {
+                r(-52, -3, 3, 3, gold);
+                r(-51, 1, 3, 3, "#a855f7");
+            }
+
+            if (cannonFired > 0) {
+                r(40, 8, 14, 8, "#fde047");
+                r(50, 4, 20, 14, "#a855f7");
+                r(66, -2, 24, 22, "#ef4444");
+            }
+
+            ctx.restore();
+        }
+
+        function render() {
+            time += 0.03;
+            if (flash > 0) flash -= 0.04;
+            if (cannonFired > 0) cannonFired -= 0.04;
+
+            ctx.fillStyle = flash > 0.3 ? '#6b21a8' : '#020005';
+            ctx.fillRect(0, 0, V_W, V_H);
+
+            stars.forEach((st, i) => {
+                const alpha = Math.abs(Math.sin(time * 2 + i));
+                ctx.fillStyle = `rgba(192, 132, 252, ${alpha})`;
+                ctx.fillRect(st.x, st.y, st.s, st.s);
+            });
+
+            const moonX = 330, moonY = 42;
+            ctx.fillStyle = flash > 0.3 ? '#f3e8ff' : '#c084fc';
+            ctx.beginPath(); ctx.arc(moonX, moonY, 18, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#581c87';
+            r(moonX - 8, moonY - 6, 5, 4, '#581c87');
+            r(moonX + 3, moonY + 2, 6, 5, '#581c87');
+
+            drawPixelPelican();
+
+            const horizon = 150;
+            ctx.fillStyle = '#080212';
+            ctx.fillRect(0, horizon, V_W, V_H - horizon);
+
+            for(let i=0; i<15; i++) {
+                const ry = horizon + 2 + i*3;
+                const rw = (15 - i)*2 + Math.sin(time*3 + i)*2.5;
+                ctx.fillStyle = `rgba(192, 132, 252, ${0.28 - i*0.015})`;
+                r(moonX - rw/2, ry, rw, 2, ctx.fillStyle);
+            }
+
+            const shipX = 200;
+            const shipY = horizon - 20 + Math.sin(time * 2.5) * 2.5;
+            drawTruePixelShip(shipX, shipY);
+
+            for(let x=0; x<V_W; x+=4) {
+                const wy1 = horizon + 12 + Math.sin(x*0.06 + time*3)*3;
+                r(x, wy1, 4, 4, '#140626');
+                const wy2 = horizon + 18 + Math.sin(x*0.08 - time*3.5)*3.5;
+                r(x, wy2, 4, V_H - wy2, '#05010a');
+            }
+
+            requestAnimationFrame(render);
+        }
+
+        // --- Logique du Calendrier / Modal ---
+        const calModal = document.getElementById('calendar-modal');
+        document.getElementById('btn-open-cal').addEventListener('click', () => {
+            calModal.style.display = 'flex';
+        });
+        document.getElementById('btn-close-cal').addEventListener('click', () => {
+            calModal.style.display = 'none';
+        });
+        
+        // Fichier ICS avec rappel d'une heure intégré
+        document.getElementById('btn-apple-cal').addEventListener('click', () => {
+            const icsContent = "BEGIN:VCALENDAR\r\n" +
+                               "VERSION:2.0\r\n" +
+                               "BEGIN:VEVENT\r\n" +
+                               "DTSTART;TZID=Europe/Paris:20261031T150000\r\n" +
+                               "DTEND;TZID=Europe/Paris:20261101T020000\r\n" +
+                               "SUMMARY:☠️ Grand Chelem Caennais - Barathon Pirate\r\n" +
+                               "DESCRIPTION:Prêt pour les 8 épreuves du Barathon ? Départ Rue Montaigu, arrivée Les Mauvais Gamins.\r\n" +
+                               "LOCATION:Rue Montaigu, Caen, France\r\n" +
+                               "BEGIN:VALARM\r\n" +
+                               "ACTION:DISPLAY\r\n" +
+                               "DESCRIPTION:Rappel Barathon\r\n" +
+                               "TRIGGER:-PT1H\r\n" +
+                               "END:VALARM\r\n" +
+                               "END:VEVENT\r\n" +
+                               "END:VCALENDAR";
+            const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'grand-chelem-barathon.ics';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            calModal.style.display = 'none';
+        });
+
+        function startGame() {
+            initAudio();
+            const overlay = document.getElementById('start-overlay');
+            overlay.style.opacity = '0';
+            overlay.style.transition = 'opacity 0.4s ease';
+            setTimeout(() => {
+                overlay.style.display = 'none';
+            }, 400);
+        }
+
+        document.getElementById('start-btn').addEventListener('click', startGame);
+        document.getElementById('start-overlay').addEventListener('click', startGame);
+
+        document.getElementById('btn-cannon').addEventListener('click', () => {
+            cannonFired = 1.0;
+            playCannonSFX();
+            document.body.classList.add('shake');
+            setTimeout(() => document.body.classList.remove('shake'), 350);
+        });
+
+        document.getElementById('btn-lightning').addEventListener('click', () => {
+            flash = 1.0;
+        });
+
+        document.getElementById('btn-audio').addEventListener('click', (e) => {
+            if(!audioCtx) initAudio();
+            isMuted = !isMuted;
+            if(masterGain) masterGain.gain.value = isMuted ? 0 : 0.25;
+            e.target.innerText = isMuted ? "🔇 SON" : "🔊 SON";
+        });
+
+        let crtOn = true;
+        document.getElementById('btn-crt').addEventListener('click', () => {
+            crtOn = !crtOn;
+            document.body.className = crtOn ? "crt" : "";
+        });
+
+        render();
+    </script>
+</body>
+</html>
